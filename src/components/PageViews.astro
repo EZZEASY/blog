@@ -1,0 +1,56 @@
+---
+export interface Props {
+  slug: string;
+}
+
+const { slug } = Astro.props;
+
+// Cloudflare Worker API 地址，部署后替换
+const WORKER_API = 'https://your-worker.your-subdomain.workers.dev';
+---
+
+<span class="page-views" data-slug={slug}>
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+    <circle cx="12" cy="12" r="3"></circle>
+  </svg>
+  <span class="count">--</span> 次阅读
+</span>
+
+<script define:vars={{ WORKER_API }}>
+  document.addEventListener('DOMContentLoaded', async () => {
+    const pageViewsEl = document.querySelector('.page-views');
+    if (!pageViewsEl) return;
+
+    const slug = pageViewsEl.dataset.slug;
+    const countEl = pageViewsEl.querySelector('.count');
+
+    try {
+      const response = await fetch(`${WORKER_API}/api/views/${encodeURIComponent(slug)}`, {
+        method: 'POST',
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        countEl.textContent = data.views || 0;
+      }
+    } catch (error) {
+      console.error('Failed to fetch page views:', error);
+      countEl.textContent = '0';
+    }
+  });
+</script>
+
+<style>
+  .page-views {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3em;
+    color: rgb(var(--gray));
+    font-size: 0.9em;
+  }
+
+  .page-views svg {
+    opacity: 0.7;
+  }
+</style>

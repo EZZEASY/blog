@@ -1,0 +1,57 @@
+---
+const today = new Date();
+
+// Cloudflare Worker API 地址，部署后替换
+const WORKER_API = 'https://your-worker.your-subdomain.workers.dev';
+---
+
+<footer>
+	<div class="site-stats">
+		<span>本站总访问 <span id="site-pv">--</span> 次</span>
+		<span class="divider">|</span>
+		<span>访客 <span id="site-uv">--</span> 人</span>
+	</div>
+	<div class="copyright">
+		&copy; {today.getFullYear()} LZL Blog. All rights reserved.
+	</div>
+</footer>
+
+<script define:vars={{ WORKER_API }}>
+	document.addEventListener('DOMContentLoaded', async () => {
+		const pvEl = document.getElementById('site-pv');
+		const uvEl = document.getElementById('site-uv');
+
+		try {
+			const response = await fetch(`${WORKER_API}/api/stats`);
+			if (response.ok) {
+				const data = await response.json();
+				pvEl.textContent = data.totalViews || 0;
+				uvEl.textContent = data.totalVisitors || 0;
+			}
+		} catch (error) {
+			console.error('Failed to fetch site stats:', error);
+		}
+	});
+</script>
+
+<style>
+	footer {
+		padding: 2em 1em 3em 1em;
+		background: rgb(var(--gray-light));
+		color: rgb(var(--gray));
+		text-align: center;
+	}
+	.site-stats {
+		display: flex;
+		justify-content: center;
+		gap: 0.5em;
+		margin-bottom: 1em;
+		font-size: 0.9em;
+	}
+	.divider {
+		opacity: 0.5;
+	}
+	.copyright {
+		font-size: 0.85em;
+	}
+</style>
